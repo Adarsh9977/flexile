@@ -176,7 +176,12 @@ test.describe("Equity Grants", () => {
     await page.waitForTimeout(500); // TODO (techdebt): avoid this
     await page.getByPlaceholder("Description").fill("Software development work");
     await page.waitForTimeout(500); // TODO (techdebt): avoid this
-    await page.getByRole("button", { name: "Send invoice" }).click();
+
+    // Click and wait for navigation to complete to /invoices
+    await Promise.all([
+      page.waitForNavigation({ url: "**/invoices" }),
+      page.getByRole("button", { name: "Send invoice" }).click(),
+    ]);
 
     await expect(page.getByRole("cell", { name: "CUSTOM-1" })).toBeVisible();
     await expect(page.locator("tbody")).toContainText("Oct 15, 2024");
