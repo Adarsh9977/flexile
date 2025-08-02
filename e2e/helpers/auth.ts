@@ -6,10 +6,10 @@ import { users } from "@/db/schema";
 import { assertDefined } from "@/utils/assert";
 
 const clerkTestUsers = [
-  { id: "user_2rV0f8ymVAsk3S0V6EhfSiQcGbK", email: "hi1+clerk_test@example.com" },
-  { id: "user_2vEWnlPOcxlENwUAXNxdTTLWlHD", email: "hi2+clerk_test@example.com" },
-  { id: "user_2vNAyVNltrKLy3YXFki6M6YhemM", email: "hi3+clerk_test@example.com" },
-  { id: "user_2vNFwz9EONQUFm7BGe48EHIZZGa", email: "hi4+clerk_test@example.com" },
+  { id: "user_2zuMrlelXX1TQAWzbvUneOC4E0p", email: "hi1+clerk_test@example.com" },
+  { id: "user_2zuMxk2OStweY48GDfSBoQRWzRd", email: "hi2+clerk_test@example.com" },
+  { id: "user_2zuN0qPZE3v8sufPmwNbuaS8ljM", email: "hi3+clerk_test@example.com" },
+  { id: "user_2zuN4JKnNO1PEliefgL9WnRfhaa", email: "hi4+clerk_test@example.com" },
 ];
 let clerkTestUser: (typeof clerkTestUsers)[number] | undefined;
 
