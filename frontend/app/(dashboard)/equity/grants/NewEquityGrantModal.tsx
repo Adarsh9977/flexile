@@ -120,7 +120,7 @@ export default function NewEquityGrantModal({ open, onOpenChange }: NewEquityGra
       form.setValue("optionGrantType", lastGrant?.optionGrantType ?? "nso");
       form.setValue("issueDateRelationship", lastGrant?.issueDateRelationship ?? "employee");
     }
-  }, [recipientId, recipient]);
+  }, [recipientId]);
 
   useEffect(() => {
     if (!optionPool) return;
@@ -132,7 +132,7 @@ export default function NewEquityGrantModal({ open, onOpenChange }: NewEquityGra
     form.setValue("deathExerciseMonths", optionPool.deathExerciseMonths);
     form.setValue("disabilityExerciseMonths", optionPool.disabilityExerciseMonths);
     form.setValue("retirementExerciseMonths", optionPool.retirementExerciseMonths);
-  }, [optionPoolId, optionPool]);
+  }, [optionPool]);
 
   const createEquityGrant = trpc.equityGrants.create.useMutation({
     onSuccess: async () => {
@@ -594,7 +594,11 @@ export default function NewEquityGrantModal({ open, onOpenChange }: NewEquityGra
             </div>
 
             <div className="flex justify-end">
-              <MutationStatusButton type="submit" mutation={createEquityGrant} disabled={!isFormValid}>
+              <MutationStatusButton
+                type="submit"
+                mutation={createEquityGrant}
+                disabled={!isFormValid || createEquityGrant.isPending}
+              >
                 Create grant
               </MutationStatusButton>
             </div>

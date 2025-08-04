@@ -167,7 +167,6 @@ export default function GrantsPage() {
           ) : null}
         </DialogContent>
       </Dialog>
-
       <NewEquityGrantModal open={showNewGrantModal} onOpenChange={setShowNewGrantModal} />
     </>
   );
