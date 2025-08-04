@@ -54,7 +54,8 @@ const RangeInput = ({
   const processValue = useCallback(
     (val: number) => {
       const clampedValue = Math.min(max, Math.max(min, val));
-      const roundedValue = Math.round(clampedValue / step) * step;
+      const safeStep = step > 0 ? step : 1;
+      const roundedValue = Math.round(clampedValue / safeStep) * safeStep;
       return Number.parseFloat(roundedValue.toFixed(10));
     },
     [min, max, step],

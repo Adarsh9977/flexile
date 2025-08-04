@@ -446,7 +446,9 @@ const DetailsTab = ({
               <span>Equity split</span>
               <div className="my-2 flex h-2 overflow-hidden rounded-xs bg-gray-200">
                 <div
-                  style={{ width: `${contractor.equityPercentage}%` }}
+                  style={{
+                    width: `${typeof contractor.equityPercentage === "number" ? contractor.equityPercentage : 0}%`,
+                  }}
                   className="flex flex-col justify-center bg-blue-600 whitespace-nowrap"
                 ></div>
                 <div
