@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_31_200856) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_04_185359) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -137,7 +137,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_31_200856) do
     t.string "pay_rate_currency", default: "usd", null: false
     t.string "role"
     t.boolean "contract_signed_elsewhere", default: false, null: false
-    t.integer "equity_percentage", default: 0, null: false
+    t.decimal "equity_percentage", precision: 5, scale: 2, default: "0.0", null: false
     t.index ["company_id"], name: "index_company_contractors_on_company_id"
     t.index ["external_id"], name: "index_company_contractors_on_external_id", unique: true
     t.index ["user_id", "company_id"], name: "index_company_contractors_on_user_id_and_company_id", unique: true
@@ -738,7 +738,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_31_200856) do
     t.string "bill_to", null: false
     t.text "notes"
     t.integer "invoice_approvals_count", default: 0, null: false
-    t.integer "equity_percentage", null: false
+    t.decimal "equity_percentage", precision: 5, scale: 2, null: false
     t.bigint "equity_amount_in_cents", null: false
     t.integer "equity_amount_in_options", null: false
     t.bigint "cash_amount_in_cents", null: false
@@ -757,8 +757,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_31_200856) do
     t.string "country_code"
     t.bigint "created_by_id", null: false
     t.enum "invoice_type", default: "services", null: false, enum_type: "invoices_invoice_type"
-    t.integer "min_allowed_equity_percentage"
-    t.integer "max_allowed_equity_percentage"
+    t.decimal "min_allowed_equity_percentage", precision: 5, scale: 2
+    t.decimal "max_allowed_equity_percentage", precision: 5, scale: 2
     t.datetime "accepted_at"
     t.datetime "deleted_at"
     t.index ["company_contractor_id"], name: "index_invoices_on_company_contractor_id"

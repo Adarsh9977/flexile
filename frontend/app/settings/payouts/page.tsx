@@ -55,7 +55,7 @@ const EquitySection = () => {
   assert(worker != null);
 
   const form = useForm({
-    defaultValues: { equityPercentage: worker.equityPercentage },
+    defaultValues: { equityPercentage: Number(worker.equityPercentage) },
     resolver: zodResolver(equityFormSchema),
   });
   const payRateInSubunits = worker.payRateInSubunits ?? 0;
@@ -92,6 +92,7 @@ const EquitySection = () => {
                     {...field}
                     min={0}
                     max={MAX_EQUITY_PERCENTAGE}
+                    step={0.01}
                     aria-label="Cash vs equity split"
                     unit="%"
                   />

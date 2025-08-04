@@ -86,8 +86,8 @@ const invoiceInputSchema = createInsertSchema(invoiceLineItems)
   .refine(
     (data) =>
       !data.minAllowedEquityPercentage ||
-      (data.minAllowedEquityPercentage >= MINIMUM_EQUITY_PERCENTAGE &&
-        data.minAllowedEquityPercentage <= MAXIMUM_EQUITY_PERCENTAGE),
+      (Number(data.minAllowedEquityPercentage) >= MINIMUM_EQUITY_PERCENTAGE &&
+        Number(data.minAllowedEquityPercentage) <= MAXIMUM_EQUITY_PERCENTAGE),
     {
       message: `Minimum equity percentage must be between ${MINIMUM_EQUITY_PERCENTAGE} and ${MAXIMUM_EQUITY_PERCENTAGE}`,
     },
@@ -95,8 +95,8 @@ const invoiceInputSchema = createInsertSchema(invoiceLineItems)
   .refine(
     (data) =>
       !data.maxAllowedEquityPercentage ||
-      (data.maxAllowedEquityPercentage >= MINIMUM_EQUITY_PERCENTAGE &&
-        data.maxAllowedEquityPercentage <= MAXIMUM_EQUITY_PERCENTAGE),
+      (Number(data.maxAllowedEquityPercentage) >= MINIMUM_EQUITY_PERCENTAGE &&
+        Number(data.maxAllowedEquityPercentage) <= MAXIMUM_EQUITY_PERCENTAGE),
     {
       message: `Maximum equity percentage must be between ${MINIMUM_EQUITY_PERCENTAGE} and ${MAXIMUM_EQUITY_PERCENTAGE}`,
     },
@@ -143,7 +143,7 @@ export const invoicesRouter = createRouter({
         companyContractor: companyWorker,
         serviceAmountCents: Number(totalAmountCents),
         invoiceYear: dateToday.getFullYear(),
-        providedEquityPercentage: values.equityPercentage,
+        providedEquityPercentage: Number(values.equityPercentage),
       });
 
       if (!equityResult) {
@@ -159,7 +159,7 @@ export const invoicesRouter = createRouter({
 
       equityAmountInCents = BigInt(equityResult.equityCents);
       equityAmountInOptions = equityResult.equityOptions;
-      equityPercentage = equityResult.equityPercentage;
+      equityPercentage = Number(equityResult.equityPercentage);
     }
 
     const cashAmountInCents = totalAmountCents - equityAmountInCents;
@@ -186,7 +186,7 @@ export const invoicesRouter = createRouter({
           state: invoicer.state,
           zipCode: invoicer.zipCode,
           countryCode: invoicer.countryCode,
-          equityPercentage,
+          equityPercentage: equityPercentage.toString(),
           equityAmountInCents,
           equityAmountInOptions,
           totalAmountInUsdCents: totalAmountCents,
@@ -250,8 +250,8 @@ export const invoicesRouter = createRouter({
 
       if (invoice.minAllowedEquityPercentage !== null && invoice.maxAllowedEquityPercentage !== null) {
         if (
-          input.equityPercentage < invoice.minAllowedEquityPercentage ||
-          input.equityPercentage > invoice.maxAllowedEquityPercentage
+          input.equityPercentage < Number(invoice.minAllowedEquityPercentage) ||
+          input.equityPercentage > Number(invoice.maxAllowedEquityPercentage)
         ) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Equity percentage is out of range" });
         }
@@ -286,7 +286,7 @@ export const invoicesRouter = createRouter({
           invoice.minAllowedEquityPercentage !== null && invoice.maxAllowedEquityPercentage !== null
             ? {
                 acceptedAt: new Date(),
-                equityPercentage,
+                equityPercentage: equityPercentage.toString(),
                 cashAmountInCents,
                 equityAmountInCents,
                 equityAmountInOptions,

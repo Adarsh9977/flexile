@@ -149,11 +149,14 @@ export default function ContractorPage() {
         ...(values.equityType === "range"
           ? {
               ...values,
-              equityPercentage: values.equityRange[0],
-              minAllowedEquityPercentage: values.equityRange[0],
-              maxAllowedEquityPercentage: values.equityRange[1],
+              equityPercentage: values.equityRange[0].toString(),
+              minAllowedEquityPercentage: values.equityRange[0].toString(),
+              maxAllowedEquityPercentage: values.equityRange[1].toString(),
             }
-          : values),
+          : {
+              ...values,
+              equityPercentage: values.equityPercentage.toString(),
+            }),
         companyId: company.id,
         userExternalId: id,
         totalAmountCents: BigInt(values.amountInCents),
@@ -319,7 +322,7 @@ export default function ContractorPage() {
                       <FormItem hidden={issuePaymentValues.equityType === "range"}>
                         <FormLabel>Equity percentage</FormLabel>
                         <FormControl>
-                          <NumberInput {...field} suffix="%" />
+                          <NumberInput {...field} suffix="%" decimal />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -458,21 +461,37 @@ const DetailsTab = ({
                   className="flex flex-col justify-center bg-blue-600 whitespace-nowrap"
                 ></div>
                 <div
-                  style={{ width: `${100 - contractor.equityPercentage}%` }}
+                  style={{
+                    width: `${100 - (typeof contractor.equityPercentage === "number" ? contractor.equityPercentage : 0)}%`,
+                  }}
                   className="flex flex-col justify-center"
                 ></div>
               </div>
               <div className="flex justify-between">
                 <span>
-                  {(contractor.equityPercentage / 100).toLocaleString(undefined, { style: "percent" })} Equity{" "}
+                  {typeof contractor.equityPercentage === "number"
+                    ? (contractor.equityPercentage / 100).toLocaleString(undefined, { style: "percent" })
+                    : "—"}{" "}
+                  Equity{" "}
                   <span className="text-gray-600">
-                    ({formatMoneyFromCents((contractor.equityPercentage * payRateInSubunits) / 100)})
+                    {typeof contractor.equityPercentage === "number"
+                      ? `(${formatMoneyFromCents((contractor.equityPercentage * payRateInSubunits) / 100)})`
+                      : ""}
                   </span>
                 </span>
                 <span>
-                  {((100 - contractor.equityPercentage) / 100).toLocaleString(undefined, { style: "percent" })} Cash{" "}
+                  {typeof contractor.equityPercentage === "number"
+                    ? ((100 - contractor.equityPercentage) / 100).toLocaleString(undefined, { style: "percent" })
+                    : "—"}{" "}
+                  Cash{" "}
                   <span className="text-gray-600">
-                    ({formatMoneyFromCents(((100 - contractor.equityPercentage) * payRateInSubunits) / 100)})
+                    (
+                    {formatMoneyFromCents(
+                      typeof contractor.equityPercentage === "number" && typeof payRateInSubunits === "number"
+                        ? ((100 - contractor.equityPercentage) * payRateInSubunits) / 100
+                        : 0,
+                    )}
+                    )
                   </span>
                 </span>
               </div>
