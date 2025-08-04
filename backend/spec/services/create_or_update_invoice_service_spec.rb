@@ -87,7 +87,7 @@ RSpec.describe CreateOrUpdateInvoiceService do
           expect(invoice.invoice_number).to eq("INV-123")
           expect(invoice.company_worker).to eq(contractor)
           expect(invoice.total_amount_in_usd_cents).to eq(expected_total_amount_in_cents)
-          expect(invoice.equity_percentage).to eq(0)
+          expect(invoice.equity_percentage).to eq(0.00)
           expect(invoice.cash_amount_in_cents).to eq(expected_total_amount_in_cents)
           expect(invoice.flexile_fee_cents).to eq((50 + (0.015 * expected_total_amount_in_cents)).round)
           expect(invoice.equity_amount_in_cents).to eq(0)
@@ -111,13 +111,13 @@ RSpec.describe CreateOrUpdateInvoiceService do
       end
 
       it "calculates the amounts correctly if the contractor has opted for some compensation in equity" do
-        contractor.update!(equity_percentage: 60)
+        contractor.update!(equity_percentage: 60.00)
         expect do
           result = invoice_service.process
           expect(result[:success]).to be(true)
           invoice = result[:invoice]
           expect(invoice.total_amount_in_usd_cents).to eq(expected_total_amount_in_cents)
-          expect(invoice.equity_percentage).to eq(60)
+          expect(invoice.equity_percentage).to eq(60.00)
           expected_equity_cents = 8461
           expect(invoice.equity_amount_in_cents).to eq(expected_equity_cents)
           expected_cash_cents = 5640
@@ -129,7 +129,7 @@ RSpec.describe CreateOrUpdateInvoiceService do
       end
 
       it "does not apply an equity split if the equity portion makes up less than one share" do
-        contractor.update!(equity_percentage: 1)
+        contractor.update!(equity_percentage: 1.00)
         equity_grant.update!(share_price_usd: 20)
 
         expect do
@@ -139,7 +139,7 @@ RSpec.describe CreateOrUpdateInvoiceService do
 
           expect(invoice.total_amount_in_usd_cents).to eq(expected_total_amount_in_cents)
           expect(invoice.equity_amount_in_options).to eq(0)
-          expect(invoice.equity_percentage).to eq(0)
+          expect(invoice.equity_percentage).to eq(0.00)
           expect(invoice.equity_amount_in_cents).to eq(0)
           expect(invoice.cash_amount_in_cents).to eq(expected_total_amount_in_cents)
           expect(invoice.flexile_fee_cents).to eq(50 + (1.5 * expected_total_amount_in_cents / 100).round)
@@ -147,7 +147,7 @@ RSpec.describe CreateOrUpdateInvoiceService do
       end
 
       it "does not apply an equity split if the feature is not enabled" do
-        contractor.update!(equity_percentage: 60)
+        contractor.update!(equity_percentage: 60.00)
         company.update!(equity_enabled: false)
 
         expect do
@@ -155,7 +155,7 @@ RSpec.describe CreateOrUpdateInvoiceService do
           expect(result[:success]).to be(true)
           invoice = result[:invoice]
           expect(invoice.total_amount_in_usd_cents).to eq(expected_total_amount_in_cents)
-          expect(invoice.equity_percentage).to eq(0)
+          expect(invoice.equity_percentage).to eq(0.00)
           expect(invoice.cash_amount_in_cents).to eq(expected_total_amount_in_cents)
           expect(invoice.flexile_fee_cents).to eq(50 + (1.5 * expected_total_amount_in_cents / 100).round)
           expect(invoice.equity_amount_in_cents).to eq(0)
@@ -165,7 +165,7 @@ RSpec.describe CreateOrUpdateInvoiceService do
       end
 
       it "fails to create an invoice if an active grant is missing, company does not have a share price, and the contractor has an equity percentage" do
-        contractor.update!(equity_percentage: 20)
+        contractor.update!(equity_percentage: 20.00)
         equity_grant.destroy!
         company.update!(fmv_per_share_in_usd: nil)
 
@@ -209,7 +209,7 @@ RSpec.describe CreateOrUpdateInvoiceService do
             expect(invoice.invoice_line_items.length).to eq(2)
             expected_total_amount = expected_total_amount_in_cents + invoice_expense.total_amount_in_cents
             expect(invoice.total_amount_in_usd_cents).to eq(expected_total_amount)
-            expect(invoice.equity_percentage).to eq(0)
+            expect(invoice.equity_percentage).to eq(0.00)
             expect(invoice.cash_amount_in_cents).to eq(expected_total_amount)
             expect(invoice.flexile_fee_cents).to eq(15_00) # max fee
             expect(invoice.equity_amount_in_cents).to eq(0)
@@ -240,7 +240,7 @@ RSpec.describe CreateOrUpdateInvoiceService do
             expect(invoice.invoice_line_items.count).to eq(0)
             expect(invoice.invoice_expenses.count).to eq(1)
             expect(invoice.total_amount_in_usd).to eq(1_000)
-            expect(invoice.equity_percentage).to eq(0)
+            expect(invoice.equity_percentage).to eq(0.00)
             expect(invoice.cash_amount_in_cents).to eq(1_000_00)
             expect(invoice.flexile_fee_cents).to eq(15_00)
             expect(invoice.equity_amount_in_cents).to eq(0)

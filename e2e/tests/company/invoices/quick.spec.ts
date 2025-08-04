@@ -26,7 +26,7 @@ test.describe("quick invoicing", () => {
       companyId: company.id,
       userId: contractorUser.id,
       payRateInSubunits: 6000,
-      equityPercentage: 20,
+      equityPercentage: "20.00",
     });
   });
 
@@ -90,6 +90,6 @@ test.describe("quick invoicing", () => {
     expect(invoice.totalAmountInUsdCents).toBe(63000n);
     expect(invoice.cashAmountInCents).toBe(50400n);
     expect(invoice.equityAmountInCents).toBe(12600n);
-    expect(invoice.equityPercentage).toBe(20);
+    expect(invoice.equityPercentage).toBe("20.00");
   });
 });

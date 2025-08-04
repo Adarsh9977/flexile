@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe InvoiceEquityCalculator do
-  let(:company_worker) { create(:company_worker, company:, equity_percentage: 60) }
+  let(:company_worker) { create(:company_worker, company:, equity_percentage: 60.00) }
   let(:investor) { create(:company_investor, company:, user: company_worker.user) }
   let(:company) { create(:company) }
   let(:service_amount_cents) { 720_37 }
@@ -23,7 +23,7 @@ RSpec.describe InvoiceEquityCalculator do
         result = calculator.calculate
         expect(result[:equity_cents]).to eq(432_22) # (60% of $720.37).round
         expect(result[:equity_options]).to eq(185) # ($432.22/ $2.34).round
-        expect(result[:equity_percentage]).to eq(60)
+        expect(result[:equity_percentage]).to eq(60.00)
       end
     end
 
@@ -31,7 +31,7 @@ RSpec.describe InvoiceEquityCalculator do
       let(:share_price_usd) { 14.90 }
 
       it "returns zero for all equity values" do
-        company_worker.update!(equity_percentage: 1)
+        company_worker.update!(equity_percentage: 1.00)
         result = calculator.calculate
 
         # Equity portion = $720 * 1% = $7.20
@@ -39,17 +39,17 @@ RSpec.describe InvoiceEquityCalculator do
         # Don't allocate any portion to equity as the number of shares comes to 0
         expect(result[:equity_cents]).to eq(0)
         expect(result[:equity_options]).to eq(0)
-        expect(result[:equity_percentage]).to eq(0)
+        expect(result[:equity_percentage]).to eq(0.00)
       end
     end
 
     context "but company_worker does not have equity percentage" do
       it "returns zero equity values" do
-        company_worker.update!(equity_percentage: 0)
+        company_worker.update!(equity_percentage: 0.00)
         result = calculator.calculate
         expect(result[:equity_cents]).to eq(0)
         expect(result[:equity_options]).to eq(0)
-        expect(result[:equity_percentage]).to eq(0)
+        expect(result[:equity_percentage]).to eq(0.00)
       end
     end
 
@@ -60,7 +60,7 @@ RSpec.describe InvoiceEquityCalculator do
         result = calculator.calculate
         expect(result[:equity_cents]).to eq(0)
         expect(result[:equity_options]).to eq(0)
-        expect(result[:equity_percentage]).to eq(0)
+        expect(result[:equity_percentage]).to eq(0.00)
       end
 
       context "and the company does not have a share price" do

@@ -12,7 +12,7 @@ FactoryBot.define do
     invoice_date { Date.current }
     total_amount_in_usd_cents { 60_00 }
     cash_amount_in_cents { total_amount_in_usd_cents }
-    equity_percentage { 0 }
+    equity_percentage { 0.00 }
     equity_amount_in_cents { 0 }
     equity_amount_in_options { 0 }
     attachments { [{ io: File.open(Rails.root.join("spec/fixtures/files/sample.pdf")), filename: "invoice.pdf", content_type: "application/pdf" }] }
@@ -29,7 +29,7 @@ FactoryBot.define do
 
     factory :invoice_with_equity do
       transient do
-        equity_split { 10 }
+        equity_split { 10.00 }
       end
 
       after(:build) do |invoice, evaluator|
