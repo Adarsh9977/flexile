@@ -43,7 +43,7 @@ test.describe("invoice creation", () => {
         companyId: company.id,
         userId: contractorUser.id,
         payRateInSubunits: 6000,
-        equityPercentage: 20,
+        equityPercentage: "20.00",
       })
     ).companyContractor;
   });
@@ -89,7 +89,7 @@ test.describe("invoice creation", () => {
     expect(invoice.totalAmountInUsdCents).toBe(600000n);
     expect(invoice.cashAmountInCents).toBe(480000n);
     expect(invoice.equityAmountInCents).toBe(120000n);
-    expect(invoice.equityPercentage).toBe(20);
+    expect(invoice.equityPercentage).toBe("20.00");
   });
 
   test("allows creation of an invoice as an alumni", async ({ page }) => {

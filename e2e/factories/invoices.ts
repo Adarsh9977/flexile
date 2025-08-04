@@ -61,7 +61,7 @@ export const invoicesFactory = {
         companyId: contractor.companyId,
         invoiceType: "services",
         status: "received",
-        equityPercentage: 0,
+        equityPercentage: "0.00",
         equityAmountInCents: BigInt(0),
         equityAmountInOptions: 0,
         cashAmountInCents: BigInt(600_00),

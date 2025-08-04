@@ -55,7 +55,12 @@ export default function InvoicePage() {
     invoice.requiresAcceptanceByPayee && searchParams.get("accept") === "true",
   );
   const acceptPayment = trpc.invoices.acceptPayment.useMutation();
-  const defaultEquityPercentage = invoice.minAllowedEquityPercentage ?? invoice.equityPercentage;
+  const defaultEquityPercentage =
+    invoice.minAllowedEquityPercentage != null
+      ? Number(invoice.minAllowedEquityPercentage)
+      : invoice.equityPercentage != null
+        ? Number(invoice.equityPercentage)
+        : 0;
   const [equityPercentage, setEquityPercentageElected] = useState(defaultEquityPercentage);
 
   const equityAmountInCents = useMemo(
@@ -79,7 +84,7 @@ export default function InvoicePage() {
 
   const lineItemTotal = (lineItem: (typeof invoice.lineItems)[number]) =>
     Math.ceil((Number(lineItem.quantity) / (lineItem.hourly ? 60 : 1)) * lineItem.payRateInSubunits);
-  const cashFactor = 1 - invoice.equityPercentage / 100;
+  const cashFactor = 1 - Number(invoice.equityPercentage) / 100;
 
   assert(!!invoice.invoiceDate); // must be defined due to model checks in rails
 
@@ -161,25 +166,35 @@ export default function InvoicePage() {
                       <div className="mb-4 flex items-center justify-between">
                         <span className="mb-4 text-gray-600">Cash vs equity split</span>
                         <span className="font-medium">
-                          {(equityPercentage / 100).toLocaleString(undefined, { style: "percent" })} equity
+                          {(Number(equityPercentage) / 100).toLocaleString(undefined, { style: "percent" })} equity
                         </span>
                       </div>
                       <Slider
                         className="mb-4"
-                        value={[equityPercentage]}
+                        value={[Number(equityPercentage)]}
                         onValueChange={([selection]) =>
-                          setEquityPercentageElected(selection ?? invoice.minAllowedEquityPercentage ?? 0)
+                          setEquityPercentageElected(
+                            selection !== undefined
+                              ? selection
+                              : invoice.minAllowedEquityPercentage != null
+                                ? Number(invoice.minAllowedEquityPercentage)
+                                : 0,
+                          )
                         }
-                        min={invoice.minAllowedEquityPercentage}
-                        max={invoice.maxAllowedEquityPercentage}
+                        min={Number(invoice.minAllowedEquityPercentage)}
+                        max={Number(invoice.maxAllowedEquityPercentage)}
                       />
                       <div className="flex justify-between text-gray-600">
                         <span>
-                          {(invoice.minAllowedEquityPercentage / 100).toLocaleString(undefined, { style: "percent" })}{" "}
+                          {(Number(invoice.minAllowedEquityPercentage) / 100).toLocaleString(undefined, {
+                            style: "percent",
+                          })}{" "}
                           equity
                         </span>
                         <span>
-                          {(invoice.maxAllowedEquityPercentage / 100).toLocaleString(undefined, { style: "percent" })}{" "}
+                          {(Number(invoice.maxAllowedEquityPercentage) / 100).toLocaleString(undefined, {
+                            style: "percent",
+                          })}{" "}
                           equity
                         </span>
                       </div>

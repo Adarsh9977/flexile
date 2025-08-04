@@ -55,17 +55,14 @@ class Invoice < ApplicationRecord
   validates :bill_to, presence: true
   validates :due_on, presence: true
   validates :equity_percentage, presence: true, numericality: {
-    only_integer: true,
     greater_than_or_equal_to: 0,
     less_than_or_equal_to: CompanyWorker::MAX_EQUITY_PERCENTAGE,
   }
   validates :min_allowed_equity_percentage, numericality: {
-    only_integer: true,
     greater_than_or_equal_to: 0,
     less_than_or_equal_to: 100,
   }, allow_nil: true
   validates :max_allowed_equity_percentage, numericality: {
-    only_integer: true,
     greater_than_or_equal_to: 0,
     less_than_or_equal_to: 100,
   }, allow_nil: true

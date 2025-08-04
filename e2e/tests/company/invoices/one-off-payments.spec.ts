@@ -60,7 +60,7 @@ test.describe("One-off payments", () => {
       expect(invoice).toEqual(
         expect.objectContaining({
           totalAmountInUsdCents: 215430n,
-          equityPercentage: 0,
+          equityPercentage: "0.00",
           cashAmountInCents: 215430n,
           equityAmountInCents: 0n,
           equityAmountInOptions: 0,
@@ -142,7 +142,7 @@ test.describe("One-off payments", () => {
         expect(invoice).toEqual(
           expect.objectContaining({
             totalAmountInUsdCents: 50000n,
-            equityPercentage: 10,
+            equityPercentage: "10.00",
             cashAmountInCents: 45000n,
             equityAmountInCents: 5000n,
             equityAmountInOptions: 5,
@@ -214,12 +214,12 @@ test.describe("One-off payments", () => {
         expect(invoice).toEqual(
           expect.objectContaining({
             totalAmountInUsdCents: 50000n,
-            equityPercentage: 25,
+            equityPercentage: "25.00",
             cashAmountInCents: 37500n,
             equityAmountInCents: 12500n,
             equityAmountInOptions: 13,
-            minAllowedEquityPercentage: 25,
-            maxAllowedEquityPercentage: 75,
+            minAllowedEquityPercentage: "25.00",
+            maxAllowedEquityPercentage: "75.00",
           }),
         );
 
@@ -240,7 +240,7 @@ test.describe("One-off payments", () => {
           createdById: adminUser.id,
           invoiceType: "other",
           status: "approved",
-          equityPercentage: 10,
+          equityPercentage: "10.00",
           equityAmountInCents: BigInt(600),
           equityAmountInOptions: 60,
           cashAmountInCents: BigInt(5400),
@@ -266,13 +266,13 @@ test.describe("One-off payments", () => {
           createdById: adminUser.id,
           invoiceType: "other",
           status: "approved",
-          equityPercentage: 0,
+          equityPercentage: "0.00",
           equityAmountInCents: 0n,
           equityAmountInOptions: 0,
           cashAmountInCents: BigInt(50000),
           totalAmountInUsdCents: BigInt(50000),
-          minAllowedEquityPercentage: 0,
-          maxAllowedEquityPercentage: 100,
+          minAllowedEquityPercentage: "0.00",
+          maxAllowedEquityPercentage: "100.00",
         });
         await login(page, workerUser);
 
@@ -311,12 +311,12 @@ test.describe("One-off payments", () => {
         expect(await db.query.invoices.findFirst({ where: eq(invoices.id, invoice.id) })).toEqual(
           expect.objectContaining({
             totalAmountInUsdCents: 50000n,
-            equityPercentage: 25,
+            equityPercentage: "25.00",
             cashAmountInCents: 37500n,
             equityAmountInCents: 12500n,
             equityAmountInOptions: 13,
-            minAllowedEquityPercentage: 0,
-            maxAllowedEquityPercentage: 100,
+            minAllowedEquityPercentage: "0.00",
+            maxAllowedEquityPercentage: "100.00",
           }),
         );
       });

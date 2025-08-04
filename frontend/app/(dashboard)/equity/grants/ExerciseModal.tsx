@@ -123,6 +123,7 @@ const ExerciseModal = ({
                 aria-invalid={submitMutation.isError}
                 min={selectedGrantIds.length > 0 ? 1 : 0}
                 max={maxExercisableOptions}
+                step={1} // This maintains integer steps for options
               />
             </div>
 

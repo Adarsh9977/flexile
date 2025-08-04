@@ -2,7 +2,7 @@ export const MAX_EQUITY_PERCENTAGE = 100;
 export const MAX_PREFERRED_NAME_LENGTH = 50; // Must match User::MAX_PREFERRED_NAME_LENGTH in Rails
 export const MIN_EMAIL_LENGTH = 5; // Must match User::MIN_EMAIL_LENGTH in Rails
 
-export const MINIMUM_EQUITY_PERCENTAGE = 0;
+export const MINIMUM_EQUITY_PERCENTAGE = 0.0;
 export const MAXIMUM_EQUITY_PERCENTAGE = 100;
 
 export const usStates = [
