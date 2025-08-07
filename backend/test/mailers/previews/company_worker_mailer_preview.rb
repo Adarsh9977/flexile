@@ -32,6 +32,14 @@ class CompanyWorkerMailerPreview < ActionMailer::Preview
     CompanyWorkerMailer.payment_failed_reenter_bank_details(Payment.last.id, amount, currency)
   end
 
+  def payment_failed
+    payment = Payment.last.invoice
+    rate = Wise::PayoutApi.new.get_exchange_rate(target_currency: payment.user.bank_account.currency).first["rate"]
+    amount = payment.cash_amount_in_usd * rate
+    currency = payment.user.bank_account.currency
+    CompanyWorkerMailer.payment_failed(Payment.last.id, amount, currency)
+  end
+
   def invoice_approved
     CompanyWorkerMailer.invoice_approved(invoice_id: Invoice.alive.where(equity_percentage: 0).last.id)
   end

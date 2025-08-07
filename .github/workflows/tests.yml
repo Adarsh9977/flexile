@@ -2,12 +2,11 @@ name: Tests
 
 on:
   push:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  workflow_dispatch:
 
 env:
+  CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
   RAILS_ENV: test
   STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
@@ -16,7 +15,7 @@ env:
 
 jobs:
   rspec:
-    runs-on: ubicloud-standard-2
+    runs-on: ubuntu-24.04
 
     services:
       postgres:
@@ -31,28 +30,22 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
       redis:
         image: redis:7.4.2
         ports:
           - 6389:6379
         options: --entrypoint redis-server
-
     strategy:
       fail-fast: false
       matrix:
         ci_node_total: [2]
         ci_node_index: [0, 1]
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Build setup
         uses: ./.github/common/
-
       - name: Setup test database
         run: cd backend && bundle exec rails db:create db:schema:load
-
       - name: Run tests
         env:
           RUBY_YJIT_ENABLE: 1
@@ -65,18 +58,14 @@ jobs:
 
   playwright:
     name: playwright
-    runs-on: ubicloud-standard-4
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
-
       - name: Build setup
         uses: ./.github/common/
-
       - run: pnpm puppeteer browsers install chrome
-
       - run: node docker/createCertificate.js
-
       - name: Cache Next build
         id: next-cache
         uses: actions/cache@v4
@@ -85,13 +74,10 @@ jobs:
           key: next-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'backend/pnpm-lock.yaml', 'frontend/pnpm-lock.yaml') }}-${{ hashFiles('frontend/**/*.{ts,tsx}') }}
           restore-keys: |
             next-${{ runner.os }}-
-
       - run: NODE_ENV=test pnpm run build-next --no-lint
         shell: bash
-
       - name: Install foreman
         run: gem install foreman
-
       - name: Cache Playwright browsers
         id: playwright-cache
         uses: actions/cache@v4
@@ -100,17 +86,13 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'backend/pnpm-lock.yaml', 'frontend/pnpm-lock.yaml') }}
           restore-keys: |
             playwright-${{ runner.os }}-
-
       - name: Install Playwright Browsers
         run: pnpm playwright install --with-deps chromium
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-
       - name: Run docker compose
         run: docker compose -f docker/docker-compose-local-linux.yml up -d
-
       - name: Run Playwright tests
         run: pnpm playwright test
-
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
