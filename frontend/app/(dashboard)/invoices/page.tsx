@@ -63,7 +63,6 @@ import { useCurrentCompany, useCurrentUser } from "@/global";
 import type { RouterOutput } from "@/trpc";
 import { PayRateType, trpc } from "@/trpc/client";
 import { formatMoneyFromCents } from "@/utils/formatMoney";
-import { pluralize } from "@/utils/pluralize";
 import { request } from "@/utils/request";
 import { company_invoices_path, export_company_invoices_path } from "@/utils/routes";
 import { formatDate } from "@/utils/time";
@@ -111,6 +110,7 @@ export default function InvoicesPage() {
   }, [data, company]);
 
   const { canSubmitInvoices, hasLegalDetails, unsignedContractId } = useCanSubmitInvoices();
+  const pluralize = (word: string, count: number) => (count === 1 ? word : `${word}s`);
 
   const isPayNowDisabled = useCallback(
     (invoice: Invoice) => {
@@ -202,7 +202,7 @@ export default function InvoicesPage() {
   });
 
   const columnHelper = createColumnHelper<(typeof data)[number]>();
-  const columns = useMemo(
+  const desktopColumns = useMemo(
     () => [
       user.roles.administrator
         ? columnHelper.accessor("billFrom", {
@@ -265,6 +265,83 @@ export default function InvoicesPage() {
     ],
     [precomputedFilterOptions, company, user.roles.administrator],
   );
+
+  const mobileColumns = useMemo(
+    () => [
+      columnHelper.display({
+        id: "billFromRoleAmount",
+        cell: (info) => {
+          const invoice = info.row.original;
+          const amount = formatMoneyFromCents(invoice.totalAmountInUsdCents);
+
+          return user.roles.administrator ? (
+            <div className="flex flex-col gap-2">
+              <div>
+                <div className="text-base font-medium">{invoice.billFrom}</div>
+                <div className="text-gray-600">{invoice.contractor.role}</div>
+              </div>
+              <div className="text-sm">{amount}</div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <Link
+                href={`/invoices/${invoice.id}`}
+                className="relative truncate font-medium no-underline after:absolute after:inset-0"
+              >
+                {invoice.invoiceNumber}
+              </Link>
+              <div className="text-sm">{amount}</div>
+            </div>
+          );
+        },
+        meta: {
+          cellClassName: "w-full",
+        },
+      }),
+
+      columnHelper.display({
+        id: "statusSentOn",
+        cell: (info) => {
+          const invoice = info.row.original;
+
+          return (
+            <div className="flex h-full flex-col items-end justify-between">
+              <div className="flex h-5 w-4 items-center justify-center">
+                <Status invoice={invoice} iconOnly />
+              </div>
+              <div className="text-gray-600">{formatDate(invoice.invoiceDate)}</div>
+            </div>
+          );
+        },
+      }),
+
+      columnHelper.accessor((row) => statusNames[row.status], {
+        id: "status",
+        meta: {
+          filterOptions: [...new Set(data.map((invoice) => statusNames[invoice.status]))],
+          hidden: true,
+        },
+      }),
+
+      columnHelper.accessor((row) => row.billFrom, {
+        header: "Contractor",
+        id: "billFrom",
+        meta: {
+          hidden: true,
+        },
+      }),
+
+      columnHelper.accessor("invoiceDate", {
+        id: "invoiceDate",
+        meta: {
+          hidden: true,
+        },
+      }),
+    ],
+    [data],
+  );
+
+  const columns = isMobile ? mobileColumns : desktopColumns;
 
   const handleInvoiceAction = (actionId: string, invoices: Invoice[]) => {
     const isSingleAction = invoices.length === 1;
@@ -332,24 +409,49 @@ export default function InvoicesPage() {
 
   return (
     <>
+      {isMobile && user.roles.worker ? (
+        <Button variant="floating-action" {...(!canSubmitInvoices ? { disabled: true } : { asChild: true })}>
+          <Link href="/invoices/new" inert={!canSubmitInvoices}>
+            <Plus />
+          </Link>
+        </Button>
+      ) : null}
       <DashboardHeader
         title="Invoices"
         headerActions={
-          user.roles.worker ? (
-            !isMobile ? (
-              <Button asChild variant="outline" size="small" disabled={!canSubmitInvoices}>
-                <Link href="/invoices/new" inert={!canSubmitInvoices}>
-                  <Plus className="size-4" />
-                  New invoice
-                </Link>
-              </Button>
-            ) : (
-              <Button variant="floating-action" {...(!canSubmitInvoices ? { disabled: true } : { asChild: true })}>
-                <Link href="/invoices/new" inert={!canSubmitInvoices}>
-                  <Plus />
-                </Link>
-              </Button>
-            )
+          isMobile ? (
+            <div className="flex items-center">
+              {data.length > 0 ? (
+                <button
+                  className="p-2 text-blue-600"
+                  onClick={() => table.toggleAllRowsSelected(!table.getIsAllRowsSelected())}
+                >
+                  {table.getIsAllRowsSelected() ? "Unselect all" : "Select all"}
+                </button>
+              ) : null}
+              {user.roles.administrator ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="p-2">
+                    <MoreHorizontal className="size-5 text-blue-600" strokeWidth={1.75} />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <a href={export_company_invoices_path(company.id)} className="flex h-11 items-center gap-2">
+                        <Download className="size-4" />
+                        Download CSV
+                      </a>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : null}
+            </div>
+          ) : user.roles.worker ? (
+            <Button asChild variant="outline" size="small" disabled={!canSubmitInvoices}>
+              <Link href="/invoices/new" inert={!canSubmitInvoices}>
+                <Plus className="size-4" />
+                New invoice
+              </Link>
+            </Button>
           ) : null
         }
       />
@@ -618,7 +720,7 @@ const TasksModal = ({
           <StatusDetails invoice={invoice} />
           {payRateInSubunits &&
           invoiceData.lineItems.some((lineItem) => lineItem.payRateInSubunits > payRateInSubunits) ? (
-            <Alert className="max-md:mb-4" variant="warning">
+            <Alert className="mx-4 max-md:mb-4" variant="warning">
               <CircleAlert />
               <AlertDescription>
                 This invoice includes rates above the default of {formatMoneyFromCents(payRateInSubunits)}/

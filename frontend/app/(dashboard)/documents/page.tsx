@@ -199,6 +199,7 @@ export default function DocumentsPage() {
   const isCompanyRepresentative = !!user.roles.administrator || !!user.roles.lawyer;
   const userId = isCompanyRepresentative ? null : user.id;
   const canSign = user.address.street_address || isCompanyRepresentative;
+  const isMobile = useIsMobile();
 
   const [forceWorkerOnboarding, setForceWorkerOnboarding] = useState<boolean>(
     user.roles.worker ? !user.roles.worker.role : false,
@@ -257,7 +258,7 @@ export default function DocumentsPage() {
           ? columnHelper.accessor(
               (row) =>
                 assertDefined(row.signatories.find((signatory) => signatory.title !== "Company Representative")).name,
-              { header: "Signer" },
+              { id: "signer", header: "Signer" },
             )
           : null,
         columnHelper.simple("name", "Document"),
@@ -328,6 +329,7 @@ export default function DocumentsPage() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
     storedColumnFilters.data ?? [{ id: "documentStatus", value: ["Signature required"] }],
   );
+
   const table = useTable({
     columns,
     data: documents,
@@ -349,7 +351,20 @@ export default function DocumentsPage() {
     <>
       <DashboardHeader
         title="Documents"
-        headerActions={isCompanyRepresentative && documents.length === 0 ? <EditTemplates /> : null}
+        headerActions={
+          isMobile ? (
+            table.options.enableRowSelection ? (
+              <button
+                className="text-blue-600"
+                onClick={() => table.toggleAllRowsSelected(!table.getIsAllRowsSelected())}
+              >
+                {table.getIsAllRowsSelected() ? "Unselect all" : "Select all"}
+              </button>
+            ) : null
+          ) : isCompanyRepresentative && documents.length === 0 ? (
+            <EditTemplates />
+          ) : null
+        }
       />
 
       {!canSign || (user.roles.administrator && new Date() <= filingDueDateFor1099DIV) ? (

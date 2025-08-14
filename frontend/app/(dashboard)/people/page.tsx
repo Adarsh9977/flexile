@@ -55,6 +55,7 @@ export default function PeoplePage() {
   const { data: workers = [], isLoading, refetch } = trpc.contractors.list.useQuery({ companyId: company.id });
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showInviteLinkModal, setShowInviteLinkModal] = useState(false);
+  const isMobile = useIsMobile();
 
   const lastContractor = workers[0];
 
@@ -108,9 +109,10 @@ export default function PeoplePage() {
   }, [workers]);
 
   const columnHelper = createColumnHelper<(typeof workers)[number]>();
-  const columns = useMemo(
+  const desktopColumns = useMemo(
     () => [
       columnHelper.accessor("user.name", {
+        id: "userName",
         header: "Name",
         cell: (info) => {
           const content = info.getValue();
@@ -147,6 +149,87 @@ export default function PeoplePage() {
     ],
     [precomputedFilterOptions],
   );
+  const mobileColumns = useMemo(
+    () => [
+      columnHelper.display({
+        id: "nameRoleCountry",
+        cell: (info) => {
+          const person = info.row.original;
+          return (
+            <>
+              <div>
+                <div className="text-base font-medium">{person.user.name}</div>
+                <div className="text-sm font-normal">{person.role}</div>
+              </div>
+              {person.user.countryCode ? (
+                <div className="text-sm font-normal text-gray-600">{countries.get(person.user.countryCode)}</div>
+              ) : null}
+            </>
+          );
+        },
+        meta: {
+          cellClassName: "w-full",
+        },
+      }),
+
+      columnHelper.display({
+        id: "statusDisplay",
+        cell: (info) => {
+          const original = info.row.original;
+          let variant: "critical" | "success" | "primary";
+
+          if (original.endedAt) {
+            variant = "critical";
+          } else if (original.startedAt <= new Date()) {
+            variant = "success";
+          } else if (original.user.onboardingCompleted) {
+            variant = "success";
+          } else if (original.user.invitationAcceptedAt) {
+            variant = "primary";
+          } else {
+            variant = "primary";
+          }
+
+          return (
+            <div className="flex h-full flex-col items-end justify-between">
+              <div className="flex h-5 w-4 items-center justify-center">
+                <Status variant={variant} />
+              </div>
+            </div>
+          );
+        },
+      }),
+
+      columnHelper.accessor((row) => (row.endedAt ? "Alumni" : row.startedAt > new Date() ? "Onboarding" : "Active"), {
+        id: "status",
+        header: "Status",
+        meta: {
+          filterOptions: ["Active", "Onboarding", "Alumni"],
+          hidden: true,
+        },
+      }),
+
+      columnHelper.accessor("user.name", {
+        id: "userName",
+        header: "Name",
+        meta: {
+          hidden: true,
+        },
+      }),
+
+      columnHelper.accessor("role", {
+        id: "role",
+        header: "Role",
+        meta: {
+          filterOptions: [...new Set(workers.map((worker) => worker.role))],
+          hidden: true,
+        },
+      }),
+    ],
+    [workers],
+  );
+
+  const columns = isMobile ? mobileColumns : desktopColumns;
 
   const table = useTable({
     columns,
@@ -163,9 +246,19 @@ export default function PeoplePage() {
       <DashboardHeader
         title="People"
         headerActions={
-          workers.length === 0 ? (
-            <ActionPanel setShowInviteLinkModal={setShowInviteLinkModal} setShowInviteModal={setShowInviteModal} />
-          ) : null
+          <>
+            {isMobile && table.options.enableRowSelection ? (
+              <button
+                className="text-blue-600"
+                onClick={() => table.toggleAllRowsSelected(!table.getIsAllRowsSelected())}
+              >
+                {table.getIsAllRowsSelected() ? "Unselect all" : "Select all"}
+              </button>
+            ) : null}
+            {workers.length === 0 ? (
+              <ActionPanel setShowInviteLinkModal={setShowInviteLinkModal} setShowInviteModal={setShowInviteModal} />
+            ) : null}
+          </>
         }
       />
 

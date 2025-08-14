@@ -45,9 +45,10 @@ import { useIsMobile } from "@/utils/use-mobile";
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
+    cellClassName?: string;
     numeric?: boolean;
     filterOptions?: string[];
-    className?: string;
+    hidden?: boolean;
   }
 }
 
@@ -115,6 +116,7 @@ export default function DataTable<T extends RowData>({
   selectionActions,
 }: TableProps<T>) {
   const isMobile = useIsMobile();
+
   React.useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
@@ -129,11 +131,19 @@ export default function DataTable<T extends RowData>({
     () => ({
       headers: table
         .getHeaderGroups()
-        .filter((group) => group.headers.some((header) => header.column.columnDef.header)),
+        .filter((group) => group.headers.some((header) => header.column.columnDef.header))
+        .map((group) => ({
+          ...group,
+          headers: group.headers.filter((header) => !header.column.columnDef.meta?.hidden),
+        })),
       rows: table.getRowModel().rows,
       footers: table
         .getFooterGroups()
-        .filter((group) => group.headers.some((header) => header.column.columnDef.footer)),
+        .filter((group) => group.headers.some((header) => header.column.columnDef.footer))
+        .map((group) => ({
+          ...group,
+          headers: group.headers.filter((header) => !header.column.columnDef.meta?.hidden),
+        })),
     }),
     [table.getState()],
   );
@@ -142,6 +152,12 @@ export default function DataTable<T extends RowData>({
   const filterable = !!table.options.getFilteredRowModel;
   const selectable = !!table.options.enableRowSelection;
   const filterableColumns = table.getAllColumns().filter((column) => column.columnDef.meta?.filterOptions);
+  // const tabFilterColumn = tabsColumnName
+  //   ? table.getAllColumns().find((column) => column.id === tabsColumnName && column.columnDef.meta?.filterOptions)
+  //   : null;
+  // const dropdownFilterColumns = filterableColumns.filter((column) =>
+  //   tabsColumnName && isMobile ? column.id !== tabsColumnName : true,
+  // );
 
   const activeFilterCount = useMemo(
     () =>
@@ -154,13 +170,15 @@ export default function DataTable<T extends RowData>({
     [table.getState().columnFilters],
   );
 
-  const rowClasses = "py-2 not-print:max-md:grid";
+  const rowClasses = `px-1 py-2 md:px-0 ${isMobile ? "min-h-16 flex" : ""}`;
   const cellClasses = (column: Column<T> | null, type?: "header" | "footer") => {
     const numeric = column?.columnDef.meta?.numeric;
     return cn(
+      column?.columnDef.meta?.cellClassName,
       numeric && "md:text-right print:text-right",
       numeric && type !== "header" && "tabular-nums",
       !numeric && "print:text-wrap",
+      isMobile && "align-top",
     );
   };
 
@@ -171,9 +189,10 @@ export default function DataTable<T extends RowData>({
 
   const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original);
   const selectedRowCount = selectedRows.length;
+  // const tabFilterValue = filterValueSchema.optional().parse(tabFilterColumn?.getFilterValue());
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-3 md:gap-4">
       {filterable || actions ? (
         <div className="mx-4 space-y-2 md:space-y-0">
           <div className={cn("grid gap-2", actions ? "md:grid-cols-[1fr_auto] md:justify-between" : "grid-cols-1")}>
@@ -191,7 +210,7 @@ export default function DataTable<T extends RowData>({
                     onChange={(e) =>
                       searchColumn ? searchColumn.setFilterValue(e.target.value) : table.setGlobalFilter(e.target.value)
                     }
-                    className="w-full pl-8"
+                    className="w-full pl-8 text-sm font-light md:text-base"
                     placeholder={searchColumn ? `Search by ${getColumnName(searchColumn)}...` : "Search..."}
                   />
                 </div>
@@ -231,11 +250,13 @@ export default function DataTable<T extends RowData>({
                             <DropdownMenuCheckboxItem
                               checked={!filterValue?.length}
                               onCheckedChange={() => column.setFilterValue(undefined)}
+                              className="max-md:h-11"
                             >
                               All
                             </DropdownMenuCheckboxItem>
                             {column.columnDef.meta?.filterOptions?.map((option) => (
                               <DropdownMenuCheckboxItem
+                                className="max-md:h-11"
                                 key={option}
                                 checked={filterValue?.includes(option) ?? false}
                                 onCheckedChange={(checked) =>
@@ -377,7 +398,7 @@ export default function DataTable<T extends RowData>({
                 <TableHead
                   key={header.id}
                   colSpan={header.colSpan}
-                  className={`${cellClasses(header.column, "header")} ${sortable && header.column.getCanSort() ? "cursor-pointer" : ""} ${header.column.columnDef.meta?.className || ""}`}
+                  className={`${cellClasses(header.column, "header")} ${sortable && header.column.getCanSort() ? "cursor-pointer" : ""}`}
                   aria-sort={
                     header.column.getIsSorted() === "asc"
                       ? "ascending"
@@ -413,24 +434,27 @@ export default function DataTable<T extends RowData>({
                         aria-label="Select row"
                         disabled={!row.getCanSelect()}
                         onCheckedChange={row.getToggleSelectedHandler()}
-                        className="relative z-1"
+                        className="relative z-1 not-print:max-md:flex not-print:max-md:size-6 not-print:max-md:items-center not-print:max-md:justify-center"
                       />
                     </TableCell>
                   ) : null}
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className={`${cellClasses(cell.column)} ${cell.column.id === "actions" ? "relative z-1 md:text-right print:hidden" : ""} ${cell.column.columnDef.meta?.className || ""}`}
-                      onClick={(e) => cell.column.id === "actions" && e.stopPropagation()}
-                    >
-                      {typeof cell.column.columnDef.header === "string" && (
-                        <div className="text-gray-500 md:hidden print:hidden" aria-hidden>
-                          {cell.column.columnDef.header}
-                        </div>
-                      )}
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
+                  {row
+                    .getVisibleCells()
+                    .filter((cell) => !cell.column.columnDef.meta?.hidden)
+                    .map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className={`${cellClasses(cell.column)} ${cell.column.id === "actions" ? "relative z-1 md:text-right print:hidden" : ""}`}
+                        onClick={(e) => cell.column.id === "actions" && e.stopPropagation()}
+                      >
+                        {typeof cell.column.columnDef.header === "string" && (
+                          <div className="text-gray-500 md:hidden print:hidden" aria-hidden>
+                            {cell.column.columnDef.header}
+                          </div>
+                        )}
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
                 </TableRow>
               );
 

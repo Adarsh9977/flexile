@@ -10,7 +10,7 @@
   "license": "MIT",
   "private": true,
   "engines": {
-    "node": "22.14.0"
+    "node": "^22.14.0"
   },
   "type": "module",
   "devDependencies": {
