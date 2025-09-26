@@ -19,13 +19,26 @@ import { useCurrentCompany } from "@/global";
 import { trpc } from "@/trpc/client";
 import { cn, formatFileSize, md5Checksum } from "@/utils";
 
-const formSchema = z.object({
-  startDate: z.instanceof(CalendarDate, { message: "This field is required." }),
-  endDate: z.instanceof(CalendarDate, { message: "This field is required." }),
-  minimumValuation: z.number(),
-  attachment: z.instanceof(File, { message: "This field is required." }),
-  letterOfTransmittal: z.string().min(1, "This field is required."),
-});
+const formSchema = z
+  .object({
+    startDate: z.instanceof(CalendarDate, { message: "This field is required." }),
+    endDate: z.instanceof(CalendarDate, { message: "This field is required." }),
+    minimumValuation: z.number(),
+    attachment: z.instanceof(File, { message: "This field is required." }),
+    letterOfTransmittal: z.string().min(1, "This field is required."),
+  })
+  .refine(
+    (data) => {
+      if (data.startDate && data.endDate) {
+        return data.endDate.compare(data.startDate) >= 0;
+      }
+      return true;
+    },
+    {
+      message: "End date must be on or after the start date.",
+      path: ["endDate"],
+    },
+  );
 
 type NewBuybackFormProps = {
   handleComplete: () => void;

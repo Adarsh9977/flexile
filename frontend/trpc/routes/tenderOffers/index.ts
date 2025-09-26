@@ -15,10 +15,22 @@ const dataSchema = createInsertSchema(tenderOffers)
     minimumValuation: true,
     letterOfTransmittal: true,
   })
-  .extend({ attachmentKey: z.string(), letterOfTransmittal: z.string() });
+  .extend({ attachmentKey: z.string(), letterOfTransmittal: z.string() })
+  .refine(
+    (data) => {
+      if (data.startsAt && data.endsAt) {
+        return new Date(data.endsAt) >= new Date(data.startsAt);
+      }
+      return true;
+    },
+    {
+      message: "End date must be on or after the start date",
+      path: ["endsAt"],
+    },
+  );
 
 export const tenderOffersRouter = createRouter({
-  create: companyProcedure.input(dataSchema.required()).mutation(async ({ ctx, input }) => {
+  create: companyProcedure.input(dataSchema).mutation(async ({ ctx, input }) => {
     if (!ctx.company.equityEnabled || !ctx.companyAdministrator) {
       throw new TRPCError({ code: "FORBIDDEN" });
     }
