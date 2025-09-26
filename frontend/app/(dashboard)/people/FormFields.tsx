@@ -68,8 +68,9 @@ export default function FormFields() {
                         <CommandItem
                           key={option}
                           value={option}
-                          onSelect={(e) => {
-                            field.onChange(e);
+                          keywords={[option]}
+                          onSelect={(selectedValue) => {
+                            field.onChange(selectedValue);
                             setRolePopoverOpen(false);
                           }}
                         >
