@@ -272,12 +272,13 @@ test.describe("One-off payments", () => {
       await expect(page.getByText("Failed")).toBeVisible();
       await expect(page.getByText("$500")).toBeVisible();
 
-      const invoiceRow = await findRequiredTableRow(page, {
-        Amount: "$500",
-        Status: "Failed",
-      });
-
-      await invoiceRow.getByRole("button", { name: "Pay again" }).click();
+      await page
+        .getByTableRowCustom({
+          Amount: "$500",
+          Status: "Failed",
+        })
+        .getByRole("button", { name: "Pay again" })
+        .click();
 
       await expect(page.getByText("Payment initiated")).toBeVisible();
     });
